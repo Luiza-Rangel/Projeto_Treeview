@@ -93,6 +93,15 @@ def adicionar_agendamento():
     try:
         conexao = sqlite3.connect("bd_treeview.sqlite")
         cursor = conexao.cursor()
+
+        cursor.execute("SELECT * FROM Agendamento WHERE Data=? AND Horario=?", (data, horario))
+        agendamento_existente = cursor.fetchall()  # Recupera todas as linhas que correspondem à consulta
+
+        if agendamento_existente:
+            messagebox.showerror("Error", "Já existe um agendamento para esse horário e data!")
+            conexao.close()
+            return
+        
         cursor.execute("INSERT INTO Agendamento VALUES (?, ?, ?, ?)", (cliente, horario, data, servico))
         conexao.commit()
         conexao.close()
@@ -127,6 +136,7 @@ def alterar_agendamento():
     item = selecionado[0]  # pega o primeiro item selecionado
     valores_antigos = treeview.item(item, "values")
     horario_antigo = valores_antigos[1]
+    data_antiga = valores_antigos[2]
 
     # lê os novos valores digitados
     cliente = nome_cliente.get()
@@ -142,11 +152,25 @@ def alterar_agendamento():
     try:
         conexao = sqlite3.connect("bd_treeview.sqlite")
         cursor = conexao.cursor()
+        #verifica se já existe outro agendamento igual (mesma DATA E HORARIO)
+        cursor.execute("""
+        SELECT * FROM Agendamento
+        WHERE Data=? AND Horario=? AND NOT (Data=? AND Horario=?)
+                       """, (data, horario, data_antiga, horario_antigo))
+        conflito = cursor.fetchall()
+
+        if conflito:
+            messagebox.showerror("Erro", "Já existe um agendamento para esse horário de data!")
+            conexao.close
+            return
+
+        #Atualiza o agendamento
         cursor.execute("""
             UPDATE Agendamento
             SET Cliente=?, Horario=?, Data=?, Servico=?
-            WHERE Horario=?
+            WHERE Horario=? AND Data=?
         """, (cliente, horario, data, servico, horario_antigo))
+
         conexao.commit()
         conexao.close()
 
@@ -156,7 +180,6 @@ def alterar_agendamento():
 
     except sqlite3.IntegrityError:
         messagebox.showerror("Erro", "Já existe um agendamento com esse horário!")
-    # atualiza os valores na linha selecionada
     treeview.item(item, values=(cliente, horario, data, servico))
 
     # limpa os campos depois de alterar
