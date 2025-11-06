@@ -20,8 +20,8 @@ frame_janela.pack(pady=10)  # adiciona o frame à janela com espaçamento vertic
 
 
 # Campo nome do cliente
-ttk.Label(frame_janela, text="Cliente:").pack()
-nome_cliente = ttk.Entry(frame_janela, width=20)
+ttk.Label(frame_janela, text="Cliente:").pack() #nome cliente
+nome_cliente = ttk.Entry(frame_janela, width=20) #caixa de texto
 nome_cliente.pack()
 
 # Campo horário
@@ -31,7 +31,7 @@ hora_cliente.pack()
 
 # Campo data
 ttk.Label(frame_janela, text="Data:").pack()
-data_cliente = ttk.Entry(frame_janela, width=20)
+data_cliente = ttk.DateEntry(frame_janela, width=20)
 data_cliente.pack()
 
 # Campo serviço
@@ -43,12 +43,12 @@ servico_cliente.pack()
 # ======= BANCO DE DADOS =======
 def criar_tabela_usuario():
     conexao = sqlite3.connect("bd_treeview.sqlite")
-    cursor = conexao.cursor()
+    cursor = conexao.cursor() #é um comando que faz o sql conversar com o python
     cursor.execute("""
         CREATE TABLE IF NOT EXISTS Agendamento (
-            Cliente TEXT,
-            Horario TEXT PRIMARY KEY,
-            Data TEXT,
+            Cliente TEXT primary key,
+            Horario TEXT,
+            Data DATE,
             Servico TEXT
         )
     """)
@@ -61,7 +61,7 @@ criar_tabela_usuario()  #ele cria o banco de dados se ele nao existe ainda
 def limpar_camposozinho():
     nome_cliente.delete(0, "end")
     hora_cliente.delete(0, "end")
-    data_cliente.delete(0, "end")
+    data_cliente.entry.delete(0, "end")
     servico_cliente.delete(0, "end")
 
 # ======= FUNÇÃO PARA CARREGAR DADOS DO BANCO =======
@@ -70,11 +70,12 @@ def carregar_agendamentos():
     cursor = conexao.cursor()
     cursor.execute("SELECT * FROM Agendamento")
     dados = cursor.fetchall()
+    conexao.commit()
     conexao.close()
 
     for item in treeview.get_children():
         treeview.delete(item)
-
+                                                    #isso faz atualizar, apaga e atualiza
     for linha in dados:
         treeview.insert("", "end", values=linha)
 
@@ -83,7 +84,7 @@ def adicionar_agendamento():
     # pega os valores digitados nas caixinhas
     cliente = nome_cliente.get()
     horario = hora_cliente.get()
-    data = data_cliente.get()
+    data = data_cliente.get_date()
     servico = servico_cliente.get()
 
     if not cliente or not horario or not data or not servico:
@@ -96,12 +97,14 @@ def adicionar_agendamento():
 
         cursor.execute("SELECT * FROM Agendamento WHERE Data=? AND Horario=?", (data, horario))
         agendamento_existente = cursor.fetchall()  # Recupera todas as linhas que correspondem à consulta
-
+        print(agendamento_existente)
+        conexao.close()
         if agendamento_existente:
             messagebox.showerror("Error", "Já existe um agendamento para esse horário e data!")
-            conexao.close()
             return
         
+        conexao = sqlite3.connect("bd_treeview.sqlite")
+        cursor = conexao.cursor()
         cursor.execute("INSERT INTO Agendamento VALUES (?, ?, ?, ?)", (cliente, horario, data, servico))
         conexao.commit()
         conexao.close()
@@ -112,7 +115,7 @@ def adicionar_agendamento():
         messagebox.showinfo("Sucesso", "Agendamento adicionado!")
 
     except sqlite3.IntegrityError:
-        messagebox.showerror("Erro", "Já existe um agendamento com esse horário!")
+       None
 
 
     # conexao = sqlite3.connect(bd_treeview.sqlite)
@@ -161,7 +164,7 @@ def alterar_agendamento():
 
         if conflito:
             messagebox.showerror("Erro", "Já existe um agendamento para esse horário de data!")
-            conexao.close
+            conexao.close()
             return
 
         #Atualiza o agendamento
