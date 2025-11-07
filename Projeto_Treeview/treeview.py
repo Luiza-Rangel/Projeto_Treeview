@@ -144,7 +144,7 @@ def alterar_agendamento():
     # lê os novos valores digitados
     cliente = nome_cliente.get()
     horario = hora_cliente.get()
-    data = data_cliente.get()
+    data = data_cliente.get_date()
     servico = servico_cliente.get()
 
     # verifica se os campos não estão vazios
@@ -172,7 +172,7 @@ def alterar_agendamento():
             UPDATE Agendamento
             SET Cliente=?, Horario=?, Data=?, Servico=?
             WHERE Horario=? AND Data=?
-        """, (cliente, horario, data, servico, horario_antigo))
+        """, (cliente, horario, data, servico, horario_antigo, data_antiga))
 
         conexao.commit()
         conexao.close()
