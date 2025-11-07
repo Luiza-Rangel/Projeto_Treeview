@@ -172,7 +172,7 @@ def alterar_agendamento():
             UPDATE Agendamento
             SET Cliente=?, Horario=?, Data=?, Servico=?
             WHERE Horario=? AND Data=?
-        """, (cliente, horario, data, servico, horario_antigo))
+        """, (cliente, horario, data, servico, horario_antigo, data_antiga))
 
         conexao.commit()
         conexao.close()
