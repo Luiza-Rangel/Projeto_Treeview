@@ -227,7 +227,7 @@ def apagar_clientes():
 
     conexao.commit()
     conexao.close()
-    messagebox.showinfo("Sucesso", "Agendamento(s) apagado(s)!")
+    messagebox.showinfo("Sucesso", "Agendamento apagado!")
     
 
 
